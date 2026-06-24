@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model ChatSession {
+  id        String    @id @default(cuid())
+  userId    String
+  title     String    @default("New Conversation")
+  webSearch Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  messages  Message[]
+
+  @@index([userId])
+}
+
+model Message {
+  id            String      @id @default(cuid())
+  chatSessionId String
+  role          String
+  content       String      @db.Text
+  createdAt     DateTime    @default(now())
+  chatSession   ChatSession @relation(fields: [chatSessionId], references: [id], onDelete: Cascade)
+
+  @@index([chatSessionId])
+}
+
+model Document {
+  id         String         @id @default(cuid())
+  uploadedBy String
+  fileName   String
+  title      String
+  fileType   String
+  filePath   String
+  status     DocumentStatus @default(ACTIVE)
+  tags       String[]       @default([])
+  uploadedAt DateTime       @default(now())
+  archivedAt DateTime?
+  chunks     DocumentChunk[]
+
+  @@index([status])
+  @@index([uploadedBy])
+}
+
+enum DocumentStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+model DocumentChunk {
+  id         String   @id @default(uuid()) @db.Uuid
+  documentId String
+  chunkIndex Int
+  chunkText  String   @db.Text
+  pageNumber Int?
+  createdAt  DateTime @default(now())
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([documentId])
+}
