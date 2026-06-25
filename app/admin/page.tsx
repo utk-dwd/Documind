@@ -2,6 +2,7 @@ import { clerkClient } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/db";
 import { FileText, Layers, MessageSquare, Users } from "lucide-react";
 import { StatCard } from "@/components/admin/StatCard";
+import { SessionChart } from "@/components/admin/SessionChart";
 
 export default async function AdminDashboardPage() {
   const [docCount, chunkCount, sessionCount, client] = await Promise.all([
@@ -44,6 +45,9 @@ export default async function AdminDashboardPage() {
         {stats.map((s) => (
           <StatCard key={s.label} {...s} />
         ))}
+      </div>
+      <div className="mt-6">
+        <SessionChart />
       </div>
     </div>
   );

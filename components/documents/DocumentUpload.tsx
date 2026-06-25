@@ -11,6 +11,8 @@ export function DocumentUpload({ onUploaded }: Props) {
   const [dragging, setDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
+  const [title, setTitle] = useState("");
+  const [tags, setTags] = useState("");
 
   const upload = useCallback(
     async (file: File) => {
@@ -19,7 +21,10 @@ export function DocumentUpload({ onUploaded }: Props) {
 
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("title", file.name.replace(/\.[^.]+$/, ""));
+      formData.append("title", title || file.name.replace(/\.[^.]+$/, ""));
+      if (tags.trim()) {
+        formData.append("tags", tags.trim());
+      }
 
       try {
         const res = await fetch("/api/documents", {
@@ -30,6 +35,8 @@ export function DocumentUpload({ onUploaded }: Props) {
           const data = await res.json();
           throw new Error(data.error || "Upload failed");
         }
+        setTitle("");
+        setTags("");
         onUploaded();
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : "Upload failed");
@@ -38,11 +45,28 @@ export function DocumentUpload({ onUploaded }: Props) {
         setDragging(false);
       }
     },
-    [onUploaded]
+    [onUploaded, title, tags]
   );
 
   return (
     <div className="space-y-3">
+      <div className="flex gap-3">
+        <input
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Document title (optional)"
+          className="flex-1 rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-700 placeholder:text-zinc-400 focus:border-zinc-300 focus:outline-none focus:ring-1 focus:ring-zinc-300"
+        />
+        <input
+          type="text"
+          value={tags}
+          onChange={(e) => setTags(e.target.value)}
+          placeholder="Tags: ai, research (optional)"
+          className="w-56 rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-700 placeholder:text-zinc-400 focus:border-zinc-300 focus:outline-none focus:ring-1 focus:ring-zinc-300"
+        />
+      </div>
+
       <label
         onDragOver={(e) => {
           e.preventDefault();
@@ -86,9 +110,7 @@ export function DocumentUpload({ onUploaded }: Props) {
           className="hidden"
         />
       </label>
-      {error && (
-        <p className="text-xs text-red-500">{error}</p>
-      )}
+      {error && <p className="text-xs text-red-500">{error}</p>}
     </div>
   );
 }

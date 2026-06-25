@@ -72,6 +72,11 @@ export async function POST(req: Request) {
   await fs.writeFile(filePath, buffer);
 
   const title = formData.get("title")?.toString() || file.name.replace(ext, "");
+  const tagsStr = formData.get("tags")?.toString() || "";
+  const tags = tagsStr
+    .split(",")
+    .map((t) => t.trim())
+    .filter(Boolean);
 
   const document = await createDocument({
     uploadedBy: userId,
@@ -79,6 +84,7 @@ export async function POST(req: Request) {
     title,
     fileType,
     filePath,
+    tags,
   });
 
   ingestDocument(filePath, {
