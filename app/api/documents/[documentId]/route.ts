@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { requireAdmin } from "@/lib/auth/roles";
-import { getDocument, updateDocumentStatus } from "@/lib/db/documents";
+import { getDocument } from "@/lib/db/documents";
+import { prisma } from "@/lib/db";
 
 export async function GET(
   _req: Request,
@@ -41,6 +42,6 @@ export async function DELETE(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const archived = await updateDocumentStatus(documentId, "ARCHIVED");
-  return NextResponse.json(archived);
+  await prisma.document.delete({ where: { id: documentId } });
+  return NextResponse.json({ success: true });
 }

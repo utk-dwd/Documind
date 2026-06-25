@@ -15,7 +15,7 @@ interface IngestResult {
 type ParsedText = { text: string; numPages: number };
 
 async function readPdf(filePath: string): Promise<ParsedText> {
-  const dataBuffer = await fs.readFile(filePath);
+  const dataBuffer: Buffer = await fs.readFile(filePath);
   const parser = new PDFParse({ data: dataBuffer });
   const result = await parser.getText();
   const numPages = result.total;

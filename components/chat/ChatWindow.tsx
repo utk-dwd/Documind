@@ -9,6 +9,8 @@ import {
 } from "@assistant-ui/react";
 import { Search, ArrowUp } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ErrorBoundary } from "@/components/chat/ErrorBoundary";
 import { ChatRuntimeProvider } from "@/components/chat/ChatRuntimeProvider";
 import type { UIMessage } from "@ai-sdk/react";
 
@@ -123,18 +125,32 @@ export function ChatWindow({ sessionId }: Props) {
 
   if (loading) {
     return (
-      <div className="flex h-full items-center justify-center text-sm text-zinc-400">
-        Loading conversation...
+      <div className="flex h-full flex-col p-6">
+        <Skeleton className="mb-4 h-8 w-48" />
+        <div className="space-y-4">
+          <div className="flex justify-end">
+            <Skeleton className="h-16 w-3/4 rounded-2xl" />
+          </div>
+          <Skeleton className="h-20 w-4/5 rounded-2xl" />
+          <div className="flex justify-end">
+            <Skeleton className="h-12 w-2/3 rounded-2xl" />
+          </div>
+          <Skeleton className="h-24 w-5/6 rounded-2xl" />
+        </div>
+        <div className="mt-auto border-t pt-4">
+          <Skeleton className="h-12 w-full rounded-xl" />
+        </div>
       </div>
     );
   }
 
   return (
-    <ChatRuntimeProvider
-      sessionId={sessionId}
-      webSearchEnabled={webSearchEnabled}
-      initialMessages={initialMessages}
-    >
+    <ErrorBoundary>
+      <ChatRuntimeProvider
+        sessionId={sessionId}
+        webSearchEnabled={webSearchEnabled}
+        initialMessages={initialMessages}
+      >
       <ThreadPrimitive.Root className="flex h-full flex-col">
         <ThreadPrimitive.Viewport className="flex-1 overflow-y-auto">
           <ThreadPrimitive.Empty>
@@ -184,5 +200,6 @@ export function ChatWindow({ sessionId }: Props) {
         </div>
       </ThreadPrimitive.Root>
     </ChatRuntimeProvider>
+    </ErrorBoundary>
   );
 }
