@@ -1,3 +1,5 @@
+import { clerkClient } from "@clerk/nextjs/server";
+
 export type Role = "admin" | "editor" | "viewer";
 
 export function getUserRole(
@@ -8,6 +10,21 @@ export function getUserRole(
     return role;
   }
   return "viewer";
+}
+
+export async function getCurrentUserRole(): Promise<Role> {
+  const { auth } = await import("@clerk/nextjs/server");
+  const { userId } = await auth();
+  if (!userId) return "viewer";
+
+  const client = await clerkClient();
+  const user = await client.users.getUser(userId);
+  return getUserRole((user.publicMetadata as Record<string, unknown>) ?? {});
+}
+
+export async function requireAdmin(): Promise<boolean> {
+  const role = await getCurrentUserRole();
+  return role === "admin";
 }
 
 export const ROLE_HIERARCHY: Record<Role, number> = {

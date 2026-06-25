@@ -6,8 +6,8 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-    --font-heading: var(--font-sans);
-    --font-sans: var(--font-sans);
+    --font-heading: var(--font-inter);
+    --font-sans: var(--font-inter);
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -127,4 +127,76 @@
   html {
     @apply font-sans;
     }
+}
+
+/* ─── assistant-ui glassmorphism theme ─── */
+
+.aui-thread-root {
+  @apply bg-gradient-to-br from-zinc-50 via-white to-zinc-100;
+}
+
+.aui-thread-viewport {
+  scroll-behavior: smooth;
+}
+
+.aui-thread-viewport::-webkit-scrollbar {
+  width: 4px;
+}
+
+.aui-thread-viewport::-webkit-scrollbar-thumb {
+  @apply rounded-full bg-zinc-300;
+}
+
+.aui-message-assistant {
+  @apply mx-3 my-4;
+}
+
+.aui-message-assistant .aui-message-content {
+  @apply rounded-2xl rounded-tl-sm border border-zinc-100 bg-white/80 px-4 py-3 text-sm leading-relaxed text-zinc-700 shadow-sm backdrop-blur-sm;
+}
+
+.aui-message-user {
+  @apply mx-3 my-4 flex justify-end;
+}
+
+.aui-message-user .aui-message-content {
+  @apply max-w-[80%] rounded-2xl rounded-tr-sm bg-zinc-900 px-4 py-3 text-sm leading-relaxed text-white shadow-sm;
+}
+
+.aui-composer-root {
+  @apply relative;
+}
+
+.aui-user-message {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0.75rem 0;
+}
+
+.aui-user-message > div {
+  max-width: 80%;
+  border-radius: 1rem 1rem 0.25rem 1rem;
+  background: oklch(0.205 0 0);
+  color: oklch(0.985 0 0);
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.aui-assistant-message {
+  margin: 0.75rem 0;
+}
+
+.aui-assistant-message > div {
+  border-radius: 1rem 1rem 1rem 0.25rem;
+  border: 1px solid oklch(0.922 0 0);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: oklch(0.269 0 0);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }

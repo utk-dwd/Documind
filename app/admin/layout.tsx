@@ -1,23 +1,24 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import { getUserRole } from "@/lib/auth/roles";
+import { getCurrentUserRole } from "@/lib/auth/roles";
 
 export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { userId, sessionClaims } = await auth();
-
+  const { userId } = await auth();
   if (!userId) {
     redirect("/sign-in");
   }
 
-  const role = getUserRole(
-    (sessionClaims?.publicMetadata as Record<string, unknown>) ?? {}
-  );
+  const role = await getCurrentUserRole();
+  if (role !== "admin") {
+    redirect("/chat");
+  }
 
   if (role !== "admin") {
+    console.log(`[admin] role is "${role}", redirecting to /chat`);
     redirect("/chat");
   }
 

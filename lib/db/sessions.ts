@@ -7,6 +7,16 @@ export async function getSession(sessionId: string) {
   });
 }
 
+export async function getSessionForUser(
+  sessionId: string,
+  userId: string
+) {
+  return prisma.chatSession.findUnique({
+    where: { id: sessionId, userId },
+    include: { messages: { orderBy: { createdAt: "asc" } } },
+  });
+}
+
 export async function getSessionsByUser(userId: string) {
   return prisma.chatSession.findMany({
     where: { userId },
@@ -24,13 +34,22 @@ export async function createSession(
   });
 }
 
-export async function updateSessionTitle(sessionId: string, title: string) {
+export async function updateSessionTitle(
+  sessionId: string,
+  userId: string,
+  title: string
+) {
   return prisma.chatSession.update({
-    where: { id: sessionId },
+    where: { id: sessionId, userId },
     data: { title },
   });
 }
 
-export async function deleteSession(sessionId: string) {
-  return prisma.chatSession.delete({ where: { id: sessionId } });
+export async function deleteSession(
+  sessionId: string,
+  userId: string
+) {
+  return prisma.chatSession.delete({
+    where: { id: sessionId, userId },
+  });
 }

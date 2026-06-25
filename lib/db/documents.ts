@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import type { DocumentStatus } from "@prisma/client";
+import type { DocumentStatus, Prisma } from "@prisma/client";
 
 export async function createDocument(data: {
   uploadedBy: string;
@@ -15,6 +15,46 @@ export async function createDocument(data: {
       tags: data.tags ?? [],
     },
   });
+}
+
+export async function listDocuments(params: {
+  page: number;
+  limit: number;
+  status?: DocumentStatus;
+  search?: string;
+}) {
+  const { page, limit, status, search } = params;
+  const skip = (page - 1) * limit;
+
+  const where: Prisma.DocumentWhereInput = {};
+  if (status) where.status = status;
+  if (search) {
+    where.OR = [
+      { title: { contains: search, mode: "insensitive" } },
+      { fileName: { contains: search, mode: "insensitive" } },
+    ];
+  }
+
+  const [documents, total] = await Promise.all([
+    prisma.document.findMany({
+      where,
+      orderBy: { uploadedAt: "desc" },
+      skip,
+      take: limit,
+      include: { _count: { select: { chunks: true } } },
+    }),
+    prisma.document.count({ where }),
+  ]);
+
+  return {
+    documents,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
 }
 
 export async function getDocumentsByUser(userId: string) {
