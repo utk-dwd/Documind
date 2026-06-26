@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { UserButton } from "@clerk/nextjs";
+import { UserButton, useUser, useClerk } from "@clerk/nextjs";
 import { Plus, MessageSquare, Trash2, PanelLeftClose, PanelLeft } from "lucide-react";
 
 interface SessionItem {
@@ -14,6 +14,8 @@ interface SessionItem {
 export function AppSidebar() {
   const router = useRouter();
   const pathname = usePathname();
+  const { user } = useUser();
+  const { openUserProfile } = useClerk();
   const [sessions, setSessions] = useState<SessionItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
@@ -168,7 +170,20 @@ export function AppSidebar() {
       </nav>
 
       <div className="border-t border-zinc-200 p-3">
-        <UserButton />
+        <div className="flex items-center gap-2.5">
+          <UserButton />
+          <button
+            onClick={() => openUserProfile()}
+            className="min-w-0 flex-1 text-left"
+          >
+            <p className="truncate text-xs font-medium text-zinc-700">
+              {user?.fullName || user?.firstName || "User"}
+            </p>
+            <p className="truncate text-[10px] text-zinc-400">
+              {user?.primaryEmailAddress?.emailAddress}
+            </p>
+          </button>
+        </div>
       </div>
     </aside>
   );

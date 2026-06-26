@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { getCurrentUserRole } from "@/lib/auth/roles";
+import { AdminSidebarUser } from "@/components/admin/AdminSidebarUser";
 
 export default async function AdminLayout({
   children,
@@ -17,16 +18,11 @@ export default async function AdminLayout({
     redirect("/chat");
   }
 
-  if (role !== "admin") {
-    console.log(`[admin] role is "${role}", redirecting to /chat`);
-    redirect("/chat");
-  }
-
   return (
     <div className="flex min-h-screen">
-      <aside className="w-60 border-r border-zinc-200 p-4">
+      <aside className="flex w-60 flex-col border-r border-zinc-200 p-4">
         <h2 className="text-sm font-semibold text-zinc-500">Admin</h2>
-        <nav className="mt-4 flex flex-col gap-1">
+        <nav className="mt-4 flex flex-1 flex-col gap-1">
           <a href="/admin" className="rounded px-2 py-1 text-sm hover:bg-zinc-100">
             Dashboard
           </a>
@@ -37,6 +33,9 @@ export default async function AdminLayout({
             Users
           </a>
         </nav>
+        <div className="border-t border-zinc-200 pt-3">
+          <AdminSidebarUser />
+        </div>
       </aside>
       <main className="flex-1 p-6">{children}</main>
     </div>

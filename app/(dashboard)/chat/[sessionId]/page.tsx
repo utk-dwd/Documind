@@ -6,6 +6,5 @@ interface Props {
 
 export default async function SessionChatPage({ params }: Props) {
   const { sessionId } = await params;
-
   return <ChatWindow sessionId={sessionId} />;
 }

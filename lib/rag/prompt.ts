@@ -6,20 +6,31 @@ FORMATTING:
 - Use bullet points when listing multiple items
 - Use headers (##) only when the answer covers clearly separate topics
 - Be concise and direct — no filler phrases like "Based on the provided context..."
-- Keep paragraphs short and scannable
+- Keep paragraphs short and scannable`;
 
-CITATIONS:
-- Do NOT write [Source 1], [Source 2], or any inline citations
-- Do NOT mention file names in your response
-- The UI handles source attribution automatically — your job is only the answer`;
+const SOURCES_RULE = `
+SOURCES:
+- At the end of every answer where context was used, add a blank line then "---" then "**Sources:**" followed by the document names.
+- Example: "---\\n**Sources:** Kaziranga National Park, Majuli"`;
+
+const FORMATTING_NO_SOURCES = `
+FORMATTING:
+- Use **bold** for key terms and important facts
+- Use bullet points when listing multiple items
+- Use headers (##) only when the answer covers clearly separate topics
+- Be concise and direct — no filler phrases like "Based on the provided context..."
+- Keep paragraphs short and scannable
+- Do NOT include source citations in your response`;
 
 export function buildSystemPrompt(
   chunks: RetrievedChunk[],
   webSearchEnabled = false
 ): string {
   const context = chunks
-    .map((c) => c.chunkText)
+    .map((c) => `[From: ${c.documentTitle}]\n${c.chunkText}`)
     .join("\n\n---\n\n");
+
+  const rules = webSearchEnabled ? FORMATTING_NO_SOURCES : FORMATTING_RULES + SOURCES_RULE;
 
   if (!webSearchEnabled) {
     if (chunks.length === 0) {
@@ -27,7 +38,7 @@ export function buildSystemPrompt(
 
 No relevant documents were found for the user's question. Tell them you couldn't find information about that in the current knowledge base and suggest they upload relevant documents.
 
-${FORMATTING_RULES}`;
+${rules}`;
     }
 
     return `You are Documind, an intelligent knowledge assistant.
@@ -36,7 +47,7 @@ KNOWLEDGE BOUNDARY:
 - Answer using ONLY the context below
 - If the answer isn't in the context, say: "I don't have information about that in the current knowledge base."
 
-${FORMATTING_RULES}
+${rules}
 
 --- CONTEXT ---
 ${context}`;
@@ -70,5 +81,5 @@ KNOWLEDGE BOUNDARY:
 SEARCH QUERIES:
 - Use today's date (${today}) when constructing search queries — NOT your training cutoff date
 
-${FORMATTING_RULES}${contextBlock}`;
+${rules}${contextBlock}`;
 }
