@@ -23,25 +23,28 @@ async function main() {
     console.log(`\nQ: "${query}"`);
     console.log("-".repeat(60));
 
-    const chunks = await retrieveContext(query, 3);
+    const result = await retrieveContext(query, 3);
 
-    if (chunks.length === 0) {
+    if (result.chunks.length === 0) {
       console.log("  No results found.");
     } else {
-      chunks.forEach((c, i) => {
+      result.chunks.forEach((c, i) => {
         console.log(
           `  [${i + 1}] ${c.documentTitle} (similarity: ${c.similarity.toFixed(4)})`
         );
         const preview = c.chunkText.slice(0, 120).replace(/\n/g, " ");
         console.log(`      ${preview}...`);
       });
+      if (result.sources.length > 0) {
+        console.log(`  Sources: ${result.sources.map((s) => s.title).join(", ")}`);
+      }
     }
   }
 
   console.log("\n" + "=".repeat(60));
   console.log("System prompt preview:");
-  const chunks = await retrieveContext("Kaziranga", 5);
-  const prompt = buildSystemPrompt(chunks);
+  const result = await retrieveContext("Kaziranga", 5);
+  const prompt = buildSystemPrompt(result.chunks);
   console.log(prompt.slice(0, 500) + "...");
 }
 

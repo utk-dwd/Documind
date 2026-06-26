@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import type { SourceDoc } from "@/lib/rag/retrieval";
 
 export async function createMessage(data: {
   chatSessionId: string;
@@ -36,20 +37,30 @@ interface SaveMessage {
 export async function saveMessages(params: {
   sessionId: string;
   messages: SaveMessage[];
+  sourceDocs?: SourceDoc[];
 }) {
-  const { sessionId, messages } = params;
+  const { sessionId, messages, sourceDocs } = params;
 
   await prisma.$transaction(async (tx) => {
     await tx.message.deleteMany({ where: { chatSessionId: sessionId } });
 
     if (messages.length > 0) {
-      await tx.message.createMany({
-        data: messages.map((m) => ({
-          chatSessionId: sessionId,
-          role: m.role,
-          content: m.content,
-        })),
-      });
+      for (let i = 0; i < messages.length; i++) {
+        const m = messages[i];
+        const isLastAssistant =
+          m.role === "assistant" && i === messages.length - 1;
+
+        await tx.message.create({
+          data: {
+            chatSessionId: sessionId,
+            role: m.role,
+            content: m.content,
+            sourceDocs: isLastAssistant && sourceDocs?.length
+              ? (sourceDocs as unknown as object[])
+              : undefined,
+          },
+        });
+      }
 
       const firstUserMsg = messages.find((m) => m.role === "user");
       const title = firstUserMsg

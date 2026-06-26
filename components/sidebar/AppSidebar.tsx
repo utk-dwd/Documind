@@ -30,6 +30,12 @@ export function AppSidebar() {
     fetchSessions();
   }, [pathname]);
 
+  useEffect(() => {
+    const handler = () => fetchSessions();
+    window.addEventListener("documind:message-saved", handler);
+    return () => window.removeEventListener("documind:message-saved", handler);
+  }, []);
+
   const handleNewChat = useCallback(async () => {
     setLoading(true);
     const res = await fetch("/api/sessions", {
@@ -39,11 +45,17 @@ export function AppSidebar() {
     });
     if (res.ok) {
       const session = await res.json();
-      setSessions((prev) => [session, ...prev]);
-      router.push(`/chat/${session.id}`);
+      setSessions((prev) => {
+        const exists = prev.find((s) => s.id === session.id);
+        return exists ? prev : [session, ...prev];
+      });
+
+      if (pathname !== `/chat/${session.id}`) {
+        router.push(`/chat/${session.id}`);
+      }
     }
     setLoading(false);
-  }, [router]);
+  }, [router, pathname]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {

@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import {
   ThreadPrimitive,
   ComposerPrimitive,
@@ -11,12 +13,34 @@ import { Search, ArrowUp } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorBoundary } from "@/components/chat/ErrorBoundary";
+import { SourceBadges } from "@/components/chat/SourceBadges";
 import { ChatRuntimeProvider } from "@/components/chat/ChatRuntimeProvider";
 import type { UIMessage } from "@ai-sdk/react";
+
+interface SourceDoc {
+  documentId: string;
+  fileName: string;
+  title: string;
+}
 
 interface ServerMessage {
   role: string;
   content: string;
+  sourceDocs?: SourceDoc[];
+}
+
+function RefreshWatcher({ onComplete }: { onComplete: () => void }) {
+  const isRunning = useThread((s) => s.isRunning);
+  const wasRunning = useRef(false);
+
+  useEffect(() => {
+    if (wasRunning.current && !isRunning) {
+      onComplete();
+    }
+    wasRunning.current = isRunning;
+  }, [isRunning, onComplete]);
+
+  return null;
 }
 
 function toUIMessages(msgs: ServerMessage[]): UIMessage[] {
@@ -52,7 +76,9 @@ function AssistantBubble() {
         components={{
           Text: ({ text }) => (
             <div className="inline-block max-w-[85%] rounded-2xl rounded-tl-sm border border-zinc-100 bg-white/80 px-4 py-3 text-sm leading-relaxed text-zinc-700 shadow-sm backdrop-blur-sm">
-              {text}
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {text}
+              </ReactMarkdown>
             </div>
           ),
         }}
@@ -107,21 +133,52 @@ interface Props {
 export function ChatWindow({ sessionId }: Props) {
   const [webSearchEnabled, setWebSearchEnabled] = useState(false);
   const [initialMessages, setInitialMessages] = useState<UIMessage[]>([]);
+  const [lastSources, setLastSources] = useState<SourceDoc[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const fetchMessages = useCallback(() => {
+    fetch(`/api/sessions/${sessionId}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.messages) {
+          const msgs: ServerMessage[] = data.messages;
+          for (let i = msgs.length - 1; i >= 0; i--) {
+            if (msgs[i].role === "assistant" && msgs[i].sourceDocs) {
+              setLastSources(msgs[i].sourceDocs as SourceDoc[]);
+              break;
+            }
+          }
+        }
+      })
+      .catch(() => {});
+  }, [sessionId]);
 
   useEffect(() => {
     setLoading(true);
     setInitialMessages([]);
+    setLastSources([]);
 
     fetch(`/api/sessions/${sessionId}`)
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (data?.messages) {
-          setInitialMessages(toUIMessages(data.messages));
+          const msgs: ServerMessage[] = data.messages;
+          for (let i = msgs.length - 1; i >= 0; i--) {
+            if (msgs[i].role === "assistant" && msgs[i].sourceDocs) {
+              setLastSources(msgs[i].sourceDocs as SourceDoc[]);
+              break;
+            }
+          }
+          setInitialMessages(toUIMessages(msgs));
         }
       })
       .finally(() => setLoading(false));
   }, [sessionId]);
+
+  const handleMessageComplete = useCallback(() => {
+    fetchMessages();
+    window.dispatchEvent(new CustomEvent("documind:message-saved"));
+  }, [fetchMessages]);
 
   if (loading) {
     return (
@@ -151,7 +208,8 @@ export function ChatWindow({ sessionId }: Props) {
         webSearchEnabled={webSearchEnabled}
         initialMessages={initialMessages}
       >
-      <ThreadPrimitive.Root className="flex h-full flex-col">
+        <RefreshWatcher onComplete={handleMessageComplete} />
+        <ThreadPrimitive.Root className="flex h-full flex-col">
         <ThreadPrimitive.Viewport className="flex-1 overflow-y-auto">
           <ThreadPrimitive.Empty>
             <div className="flex h-full items-center justify-center text-sm text-zinc-400">
@@ -167,6 +225,11 @@ export function ChatWindow({ sessionId }: Props) {
               }}
             />
             <StatusBar webSearchEnabled={webSearchEnabled} />
+            {lastSources.length > 0 && (
+              <div className="mt-2 px-4 py-2">
+                <SourceBadges sources={lastSources} />
+              </div>
+            )}
           </div>
 
           <ThreadPrimitive.ScrollToBottom />

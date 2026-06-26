@@ -200,3 +200,55 @@
   color: oklch(0.269 0 0);
   box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
+
+.aui-assistant-message strong {
+  color: oklch(0.205 0 0);
+  font-weight: 600;
+}
+
+.aui-assistant-message ul,
+.aui-assistant-message ol {
+  margin: 0.25rem 0;
+  padding-left: 1.25rem;
+}
+
+.aui-assistant-message li {
+  margin: 0.125rem 0;
+}
+
+.aui-assistant-message h2 {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: oklch(0.205 0 0);
+  margin: 0.75rem 0 0.25rem;
+}
+
+.aui-assistant-message p {
+  margin: 0.25rem 0;
+}
+
+.aui-assistant-message hr {
+  border: none;
+  border-top: 1px solid oklch(0.922 0 0);
+  margin: 0.5rem 0;
+}
+
+.aui-assistant-message code {
+  background: oklch(0.97 0 0);
+  border-radius: 4px;
+  padding: 0.1rem 0.3rem;
+  font-size: 0.8125rem;
+}
+
+.aui-assistant-message pre {
+  background: oklch(0.97 0 0);
+  border-radius: 8px;
+  padding: 0.75rem;
+  overflow-x: auto;
+  margin: 0.5rem 0;
+}
+
+.aui-assistant-message pre code {
+  background: none;
+  padding: 0;
+}

@@ -33,11 +33,15 @@ export async function POST(
     return new Response("No user message found", { status: 400 });
   }
 
-  const ragContext = await retrieveContext(lastUserText, 5);
+  const { chunks, sources } = await retrieveContext(lastUserText, 5);
+
+  console.log(
+    `[chat] retrieval: ${chunks.length} chunks, ${sources.length} sources`
+  );
 
   const modelMessages = await convertToModelMessages(messages);
 
-  const systemPrompt = buildSystemPrompt(ragContext, webSearchEnabled);
+  const systemPrompt = buildSystemPrompt(chunks, webSearchEnabled);
 
   const tools = webSearchEnabled
     ? { web_search: webSearchTool }
@@ -92,7 +96,14 @@ export async function POST(
       await saveMessages({
         sessionId,
         messages: allMessages,
+        sourceDocs: sources,
       });
+
+      if (sources.length > 0) {
+        console.log(
+          `[chat] saved ${sources.length} source(s): ${sources.map((s) => s.title).join(", ")}`
+        );
+      }
     },
   });
 

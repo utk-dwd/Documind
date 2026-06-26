@@ -24,6 +24,7 @@ model Message {
   chatSessionId String
   role          String
   content       String      @db.Text
+  sourceDocs    Json?
   createdAt     DateTime    @default(now())
   chatSession   ChatSession @relation(fields: [chatSessionId], references: [id], onDelete: Cascade)
 
